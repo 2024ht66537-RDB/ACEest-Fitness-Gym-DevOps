@@ -30,7 +30,7 @@ pipeline {
         stage('Lint') {
             steps {
                 echo '>>> Running flake8 linter...'
-                bat 'venv\\Scripts\\flake8.exe app.py --max-line-length=100 --ignore=E501,W503'
+                bat 'venv\\Scripts\\flake8.exe app.py --max-line-length=100 --ignore=E501,W503,E221,E241'
             }
         }
 

@@ -51,9 +51,9 @@ def add_member():
         return jsonify({"error": "Plan must be basic, premium, or vip"}), 400
 
     member = {
-        "id":   len(members) + 1,
+        "id": len(members) + 1,
         "name": name,
-        "age":  age,
+        "age": age,
         "plan": plan,
     }
     members.append(member)
