@@ -21,7 +21,8 @@ pipeline {
                 echo '>>> Setting up Python virtual environment...'
                 bat """
                     "%PYTHON%" -m venv venv
-                    call venv\\Scripts\\activate.bat && pip install --upgrade pip && pip install -r requirements.txt
+                    venv\\Scripts\\python.exe -m pip install --upgrade pip
+                    venv\\Scripts\\pip.exe install -r requirements.txt
                 """
             }
         }
@@ -29,18 +30,14 @@ pipeline {
         stage('Lint') {
             steps {
                 echo '>>> Running flake8 linter...'
-                bat '''
-                    call venv\\Scripts\\activate.bat && flake8 app.py --max-line-length=100 --ignore=E501,W503
-                '''
+                bat 'venv\\Scripts\\flake8.exe app.py --max-line-length=100 --ignore=E501,W503'
             }
         }
 
         stage('Unit Tests') {
             steps {
                 echo '>>> Running Pytest unit tests...'
-                bat '''
-                    call venv\\Scripts\\activate.bat && pytest tests/ -v --tb=short --junitxml=test-results.xml
-                '''
+                bat 'venv\\Scripts\\pytest.exe tests/ -v --tb=short --junitxml=test-results.xml'
             }
             post {
                 always {
