@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'aceest-fitness-gym'
         IMAGE_TAG  = 'latest'
+        PYTHON = 'C:\\Users\\RishabhDevBhardwaj\\AppData\\Local\\Programs\\Python\\Python314\\python.exe'
     }
 
     stages {
@@ -18,21 +19,18 @@ pipeline {
         stage('Setup Python') {
             steps {
                 echo '>>> Setting up Python virtual environment...'
-                sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
+                bat """
+                    "%PYTHON%" -m venv venv
+                    call venv\\Scripts\\activate.bat && pip install --upgrade pip && pip install -r requirements.txt
+                """
             }
         }
 
         stage('Lint') {
             steps {
                 echo '>>> Running flake8 linter...'
-                sh '''
-                    . venv/bin/activate
-                    flake8 app.py --max-line-length=100 --ignore=E501,W503
+                bat '''
+                    call venv\\Scripts\\activate.bat && flake8 app.py --max-line-length=100 --ignore=E501,W503
                 '''
             }
         }
@@ -40,14 +38,13 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 echo '>>> Running Pytest unit tests...'
-                sh '''
-                    . venv/bin/activate
-                    pytest tests/ -v --tb=short --junitxml=test-results.xml
+                bat '''
+                    call venv\\Scripts\\activate.bat && pytest tests/ -v --tb=short --junitxml=test-results.xml
                 '''
             }
             post {
                 always {
-                    junit 'test-results.xml'
+                    junit allowEmptyResults: true, testResults: 'test-results.xml'
                 }
             }
         }
@@ -55,19 +52,14 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo '>>> Building Docker image...'
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                bat "docker build -t %IMAGE_NAME%:%IMAGE_TAG% ."
             }
         }
 
         stage('Docker Test') {
             steps {
                 echo '>>> Running tests inside Docker container...'
-                sh """
-                    docker run --rm \
-                        --entrypoint pytest \
-                        ${IMAGE_NAME}:${IMAGE_TAG} \
-                        tests/ -v --tb=short
-                """
+                bat "docker run --rm --entrypoint pytest %IMAGE_NAME%:%IMAGE_TAG% tests/ -v --tb=short"
             }
         }
     }
@@ -81,7 +73,7 @@ pipeline {
         }
         always {
             echo '>>> Cleaning up workspace...'
-            sh 'rm -rf venv || true'
+            bat 'if exist venv rmdir /s /q venv'
         }
     }
 }
